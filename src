@@ -1,0 +1,84 @@
+import copy
+
+class TicTacToe:
+    def __init__(self):
+        self.board = [' ' for _ in range(9)]
+        self.nodes_minimax = 0
+        self.nodes_alphabeta = 0
+
+    def is_winner(self, board, player):
+        win_conditions = [
+            [0,1,2], [3,4,5], [6,7,8], # Rows
+            [0,3,6], [1,4,7], [2,5,8], # Columns
+            [0,4,8], [2,4,6]          # Diagonals
+        ]
+        return any(all(board[i] == player for i in combo) for combo in win_conditions)
+
+    def is_full(self, board):
+        return ' ' not in board
+
+    def evaluate(self, board):
+        if self.is_winner(board, 'X'): return 10
+        if self.is_winner(board, 'O'): return -10
+        return 0
+
+    def get_available_moves(self, board):
+        return [i for i, spot in enumerate(board) if spot == ' ']
+
+    # Standard Minimax Algorithm
+    def minimax(self, board, is_maximizing):
+        self.nodes_minimax += 1
+        score = self.evaluate(board)
+        if score == 10 or score == -10 or self.is_full(board):
+            return score
+
+        if is_maximizing:
+            best = -1000
+            for move in self.get_available_moves(board):
+                board[move] = 'X'
+                best = max(best, self.minimax(board, False))
+                board[move] = ' '
+            return best
+        else:
+            best = 1000
+            for move in self.get_available_moves(board):
+                board[move] = 'O'
+                best = min(best, self.minimax(board, True))
+                board[move] = ' '
+            return best
+
+    # Minimax with Alpha-Beta Pruning
+    def alphabeta(self, board, is_maximizing, alpha, beta, log_pruning=False):
+        self.nodes_alphabeta += 1
+        score = self.evaluate(board)
+        if score == 10 or score == -10 or self.is_full(board):
+            return score
+
+        if is_maximizing:
+            best = -1000
+            moves = self.get_available_moves(board)
+            for move in moves:
+                board[move] = 'X'
+                val = self.alphabeta(board, False, alpha, beta, log_pruning)
+                board[move] = ' '
+                best = max(best, val)
+                alpha = max(alpha, best)
+                if beta <= alpha:
+                    if log_pruning:
+                        print(f"[PRUNED] Maximizer cut remaining moves at index {move} (Alpha: {alpha} >= Beta: {beta})")
+                    break
+            return best
+        else:
+            best = 1000
+            moves = self.get_available_moves(board)
+            for move in moves:
+                board[move] = 'O'
+                val = self.alphabeta(board, True, alpha, beta, log_pruning)
+                board[move] = ' '
+                best = min(best, val)
+                beta = min(beta, best)
+                if beta <= alpha:
+                    if log_pruning:
+                        print(f"[PRUNED] Minimizer cut remaining moves at index {move} (Alpha: {alpha} >= Beta: {beta})")
+                    break
+            return best
