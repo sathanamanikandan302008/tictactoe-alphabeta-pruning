@@ -1,0 +1,4 @@
+git add README.md docs/
+git commit -m "add documentation, test reports, and final README"
+git tag v1.0
+git push origin main --tags
